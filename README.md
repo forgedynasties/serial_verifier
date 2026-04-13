@@ -126,6 +126,7 @@ sudo apt-get install -y python3-venv python3-pyqt5
 
 - Auto device detection
 - Automatic reboot workflow when one device is detected
+- Connected-device metadata including hardware serial, USB path, and secure boot state
 - Auto barcode capture at 14 characters (no Enter key)
 - Barcode retry support for the same connected device after mismatch
 - Live status and timestamped logs

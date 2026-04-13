@@ -41,6 +41,7 @@ class FakeADBClient:
                 usb_path=None,
                 transport_id=None,
                 hardware_serial=None,
+                secure_boot_state=None,
             )
             for serial in self.device_serials
         ]
@@ -65,6 +66,7 @@ class FakeADBClient:
             usb_path=usb_path,
             transport_id=None,
             hardware_serial=None,
+            secure_boot_state=None,
         )
 
 

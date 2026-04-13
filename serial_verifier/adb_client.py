@@ -20,6 +20,7 @@ class ADBClient:
     def __init__(self, config: ADBConfig | None = None) -> None:
         self.config = config or ADBConfig()
         self._hw_serial_cache: dict[str, str | None] = {}
+        self._secure_boot_cache: dict[str, str | None] = {}
 
     @staticmethod
     def _resolve_adb_path() -> str:
@@ -134,6 +135,28 @@ class ADBClient:
         self._hw_serial_cache[cache_key] = None
         return None
 
+    @staticmethod
+    def _classify_secure_boot_state(verified_boot_state: str) -> str | None:
+        normalized_state = verified_boot_state.strip().lower()
+        return normalized_state or None
+
+    def _get_secure_boot_state(self, adb_serial: str) -> str | None:
+        if adb_serial in self._secure_boot_cache:
+            return self._secure_boot_cache[adb_serial]
+
+        try:
+            verified_boot_state = self._run(
+                ["-s", adb_serial, "shell", "getprop", "ro.boot.verifiedbootstate"],
+                timeout_sec=self.config.get_properties_timeout_sec,
+            ).strip()
+        except ADBCommandError:
+            self._secure_boot_cache[adb_serial] = None
+            return None
+
+        secure_boot_state = self._classify_secure_boot_state(verified_boot_state)
+        self._secure_boot_cache[adb_serial] = secure_boot_state
+        return secure_boot_state
+
     def get_connected_devices(self) -> list[ConnectedDevice]:
         output = self._run(["devices", "-l"], timeout_sec=self.config.list_devices_timeout_sec)
         devices: list[ConnectedDevice] = []
@@ -162,12 +185,14 @@ class ADBClient:
             hardware_serial = (
                 self._get_hardware_serial_for_usb_path(usb_path) if usb_path else None
             )
+            secure_boot_state = self._get_secure_boot_state(adb_serial)
             devices.append(
                 ConnectedDevice(
                     adb_serial=adb_serial,
                     usb_path=usb_path,
                     transport_id=transport_id,
                     hardware_serial=hardware_serial,
+                    secure_boot_state=secure_boot_state,
                 )
             )
 

@@ -35,6 +35,7 @@ class ConnectedDevice:
     usb_path: str | None
     transport_id: str | None
     hardware_serial: str | None
+    secure_boot_state: str | None
 
 
 @dataclass(frozen=True)

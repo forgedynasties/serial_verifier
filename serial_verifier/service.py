@@ -64,6 +64,7 @@ class SerialVerificationService:
                 usb_path=None,
                 transport_id=None,
                 hardware_serial=None,
+                secure_boot_state=None,
             )
 
         if not target.adb_serial.strip():
@@ -81,6 +82,8 @@ class SerialVerificationService:
             progress(f"Detected USB path: {target.usb_path}")
         if target.hardware_serial:
             progress(f"Detected hardware serial: {target.hardware_serial}")
+        if target.secure_boot_state:
+            progress(f"Detected secure boot state: {target.secure_boot_state.lower()}")
         progress("Sending reboot command...")
         if target.transport_id:
             self.adb_client.reboot_device_by_transport(target.transport_id)

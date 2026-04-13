@@ -50,6 +50,10 @@ COLOR_PASS = "#1c7c54"
 COLOR_FAIL = "#c62828"
 COLOR_ERROR = "#8f1d1d"
 COLOR_NEUTRAL = "#475569"
+COLOR_WARN = "#b26a00"
+COLOR_WARN_BG = "#fff4db"
+COLOR_FAIL_BG = "#fde7e7"
+COLOR_PASS_BG = "#e7f6ee"
 BARCODE_LENGTH = 14
 LOGO_HEIGHT = 46
 
@@ -196,68 +200,74 @@ class SerialVerificationMainWindow(QMainWindow):
         self.connected_hw_label.setWordWrap(True)
         status_layout.addWidget(self.connected_hw_label, 2, 1, 1, 3)
 
-        add_field_label("USB Path:", 3)
+        add_field_label("Secure Boot:", 3)
+        self.connected_secure_boot_label = QLabel("-")
+        self.connected_secure_boot_label.setStyleSheet("font-family: monospace;")
+        self.connected_secure_boot_label.setWordWrap(True)
+        status_layout.addWidget(self.connected_secure_boot_label, 3, 1, 1, 3)
+
+        add_field_label("USB Path:", 4)
         self.connected_usb_label = QLabel("-")
         self.connected_usb_label.setStyleSheet("font-family: monospace;")
         self.connected_usb_label.setWordWrap(True)
-        status_layout.addWidget(self.connected_usb_label, 3, 1, 1, 3)
+        status_layout.addWidget(self.connected_usb_label, 4, 1, 1, 3)
 
-        add_field_label("Barcode Input:", 4)
+        add_field_label("Barcode Input:", 5)
         self.barcode_entry = QLineEdit()
         self.barcode_entry.setPlaceholderText("Scan barcode (14 chars)")
         self.barcode_entry.textChanged.connect(self._on_barcode_changed)
         self.barcode_entry.returnPressed.connect(self._on_barcode_submitted)
         self.barcode_entry.setMinimumHeight(38)
         self.barcode_entry.setClearButtonEnabled(True)
-        status_layout.addWidget(self.barcode_entry, 4, 1)
+        status_layout.addWidget(self.barcode_entry, 5, 1)
 
         self.verify_button = QPushButton("Submit Barcode")
         self.verify_button.setEnabled(False)
         self.verify_button.clicked.connect(self._on_barcode_submitted)
         self.verify_button.setMinimumHeight(38)
-        status_layout.addWidget(self.verify_button, 4, 2)
+        status_layout.addWidget(self.verify_button, 5, 2)
 
         barcode_hint = QLabel("Auto-captures at 14 chars. Press Enter to submit.")
         barcode_hint.setStyleSheet(f"color: {COLOR_MUTED}; font-size: 11px;")
-        status_layout.addWidget(barcode_hint, 5, 1, 1, 3)
+        status_layout.addWidget(barcode_hint, 6, 1, 1, 3)
 
-        add_field_label("Stored Barcode:", 6)
+        add_field_label("Stored Barcode:", 7)
         self.stored_barcode_label = QLabel("-")
         self.stored_barcode_label.setStyleSheet("font-family: monospace;")
-        status_layout.addWidget(self.stored_barcode_label, 6, 1, 1, 3)
+        status_layout.addWidget(self.stored_barcode_label, 7, 1, 1, 3)
 
-        add_field_label("Last Barcode:", 7)
+        add_field_label("Last Barcode:", 8)
         self.last_barcode_label = QLabel("-")
         self.last_barcode_label.setStyleSheet("font-family: monospace;")
-        status_layout.addWidget(self.last_barcode_label, 7, 1, 1, 3)
+        status_layout.addWidget(self.last_barcode_label, 8, 1, 1, 3)
 
-        add_field_label("ADB Before Reboot:", 8)
+        add_field_label("ADB Before Reboot:", 9)
         self.last_adb_before_label = QLabel("-")
         self.last_adb_before_label.setStyleSheet("font-family: monospace;")
-        status_layout.addWidget(self.last_adb_before_label, 8, 1, 1, 3)
+        status_layout.addWidget(self.last_adb_before_label, 9, 1, 1, 3)
 
-        add_field_label("ADB After Reboot:", 9)
+        add_field_label("ADB After Reboot:", 10)
         self.last_adb_after_label = QLabel("-")
         self.last_adb_after_label.setStyleSheet("font-family: monospace;")
-        status_layout.addWidget(self.last_adb_after_label, 9, 1, 1, 3)
+        status_layout.addWidget(self.last_adb_after_label, 10, 1, 1, 3)
 
-        add_field_label("Last Result:", 10)
+        add_field_label("Last Result:", 11)
         self.last_result_label = QLabel("No checks yet")
         self.last_result_label.setStyleSheet(f"font-weight: 700; color: {COLOR_NEUTRAL};")
         self.last_result_label.setWordWrap(True)
-        status_layout.addWidget(self.last_result_label, 10, 1, 1, 3)
+        status_layout.addWidget(self.last_result_label, 11, 1, 1, 3)
 
-        add_field_label("Last Duration:", 11)
+        add_field_label("Last Duration:", 12)
         self.last_duration_label = QLabel("-")
         self.last_duration_label.setStyleSheet("font-family: monospace;")
-        status_layout.addWidget(self.last_duration_label, 11, 1, 1, 3)
+        status_layout.addWidget(self.last_duration_label, 12, 1, 1, 3)
 
         self.stats_label = QLabel("Total: 0 | Pass: 0 | Fail: 0 | Errors: 0")
         self.stats_label.setStyleSheet(
             f"font-weight: 700; color: {COLOR_PRIMARY}; background-color: {COLOR_TABLE_HEADER}; "
             f"border-radius: 8px; padding: 8px 12px;"
         )
-        status_layout.addWidget(self.stats_label, 12, 0, 1, 4)
+        status_layout.addWidget(self.stats_label, 13, 0, 1, 4)
 
         status_layout.setColumnStretch(1, 1)
         outer_layout.addWidget(status_card)
@@ -490,18 +500,69 @@ class SerialVerificationMainWindow(QMainWindow):
     def _format_device_label(device: ConnectedDevice) -> str:
         parts = [f"ADB:{device.adb_serial or 'unknown'}"]
         parts.append(f"HW:{device.hardware_serial or 'unknown'}")
+        parts.append(
+            f"SB:{SerialVerificationMainWindow._format_secure_boot_summary(device.secure_boot_state)}"
+        )
         if device.usb_path:
             parts.append(f"USB:{device.usb_path}")
         return " | ".join(parts)
+
+    @staticmethod
+    def _format_secure_boot_summary(state: str | None) -> str:
+        normalized_state = (state or "").strip().lower()
+        if normalized_state in {"", "-", "unknown", "none", "n/a"}:
+            return "-"
+        if normalized_state == "green":
+            return "enabled"
+        if normalized_state in {"orange", "yellow", "red"}:
+            return f"disabled ({normalized_state})"
+        return f"disabled ({normalized_state})"
+
+    @staticmethod
+    def _secure_boot_badge_colors(state: str | None) -> tuple[str, str, str]:
+        normalized_state = (state or "").strip().lower()
+        if normalized_state in {"", "-", "unknown", "none", "n/a"}:
+            return (COLOR_NEUTRAL, COLOR_TABLE_ALT, COLOR_INPUT_BORDER)
+        if normalized_state == "green":
+            return (COLOR_PASS, COLOR_PASS_BG, COLOR_PASS)
+        if normalized_state == "orange":
+            return (COLOR_WARN, COLOR_WARN_BG, COLOR_WARN)
+        if normalized_state == "yellow":
+            return ("#8a6a00", "#fff8cc", "#c9a227")
+        if normalized_state == "red":
+            return (COLOR_FAIL, COLOR_FAIL_BG, COLOR_FAIL)
+        return (COLOR_NEUTRAL, COLOR_TABLE_ALT, COLOR_INPUT_BORDER)
+
+    def _set_secure_boot_label(self, state: str | None, multiple: bool = False) -> None:
+        if multiple:
+            self.connected_secure_boot_label.setText(state or "-")
+            self.connected_secure_boot_label.setStyleSheet("font-family: monospace;")
+            return
+
+        text = self._format_secure_boot_summary(state)
+        fg_color, bg_color, border_color = self._secure_boot_badge_colors(state)
+        self.connected_secure_boot_label.setText(text)
+        self.connected_secure_boot_label.setStyleSheet(
+            "font-family: monospace; "
+            "font-weight: 700; "
+            f"color: {fg_color}; "
+            f"background-color: {bg_color}; "
+            f"border: 1px solid {border_color}; "
+            "border-radius: 9px; "
+            "padding: 6px 10px;"
+        )
 
     def _set_connected_device_labels(
         self,
         adb_value: str = "-",
         hw_value: str = "-",
+        secure_boot_value: str = "-",
         usb_value: str = "-",
+        multiple: bool = False,
     ) -> None:
         self.connected_adb_label.setText(adb_value)
         self.connected_hw_label.setText(hw_value)
+        self._set_secure_boot_label(secure_boot_value, multiple=multiple)
         self.connected_usb_label.setText(usb_value)
 
     def _show_connected_device(self, device: ConnectedDevice | None) -> None:
@@ -512,6 +573,7 @@ class SerialVerificationMainWindow(QMainWindow):
         self._set_connected_device_labels(
             adb_value=device.adb_serial or "-",
             hw_value=device.hardware_serial or "-",
+            secure_boot_value=device.secure_boot_state or "-",
             usb_value=device.usb_path or "-",
         )
 
@@ -591,8 +653,18 @@ class SerialVerificationMainWindow(QMainWindow):
         else:
             adb_labels = ", ".join(device.adb_serial or "-" for device in self._latest_devices)
             hw_labels = ", ".join(device.hardware_serial or "-" for device in self._latest_devices)
+            secure_boot_labels = ", ".join(
+                self._format_secure_boot_summary(device.secure_boot_state)
+                for device in self._latest_devices
+            )
             usb_labels = ", ".join(device.usb_path or "-" for device in self._latest_devices)
-            self._set_connected_device_labels(adb_labels, hw_labels, usb_labels)
+            self._set_connected_device_labels(
+                adb_labels,
+                hw_labels,
+                secure_boot_labels,
+                usb_labels,
+                multiple=True,
+            )
             if self._cycle_active:
                 self._cancel_active_cycle(
                     "Multiple devices detected. Keep one connected.", COLOR_FAIL
